@@ -85,15 +85,15 @@ export const Navbar = () => {
             <FontAwesomeIcon icon={faGithub} size={isMobile ? "lg" : "xl"} />
           </ChakraLink>
 
-          <IconButton
-            aria-label="Open menu"
-            icon={<HamburgerIcon />}
-            variant="ghost"
-            color="white"
-            colorScheme="whiteAlpha"
-            onClick={onMenuOpen}
-            size="md"
-          />
+          {/*<IconButton*/}
+          {/*  aria-label="Open menu"*/}
+          {/*  icon={<HamburgerIcon />}*/}
+          {/*  variant="ghost"*/}
+          {/*  color="white"*/}
+          {/*  colorScheme="whiteAlpha"*/}
+          {/*  onClick={onMenuOpen}*/}
+          {/*  size="md"*/}
+          {/*/>*/}
         </HStack>
       </Flex>
 

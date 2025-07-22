@@ -3,6 +3,7 @@ const subdomains = require("./subdomains.js");
 require("dotenv/config");
 
 const nextConfig = {
+  output: "standalone",
   reactStrictMode: true,
   rewrites() {
     return {
@@ -21,16 +22,20 @@ const nextConfig = {
           destination: "/icon.png",
         },
         // set up subdomains
-        ...Object.values(subdomains).map((subdomain) => ({
-          source: "/:path((?!_next|chainIcons|external|icon.png).*)", // Exclude chainIcons and external from subdomain rewrites
-          has: [
-            {
-              type: "host",
-              value: `${subdomain.base}.swiss-knife.xyz`,
-            },
-          ],
-          destination: `/${subdomain.base}/:path*`,
-        })),
+        // ...Object.values(subdomains).map((subdomain) => ({
+        //   source: "/:path((?!_next|chainIcons|external|icon.png).*)", // Exclude chainIcons and external from subdomain rewrites
+        //   has: [
+        //     {
+        //       type: "host",
+        //       value: `${subdomain.base}.swiss-knife.xyz`,
+        //     },
+        //   ],
+        //   destination: `/${subdomain.base}/:path*`,
+        // })),
+        {
+          source: "/:path((?!_next|chainIcons|external|icon.png|api).*)", // Exclude chainIcons and external from subdomain rewrites
+          destination: `/wallet/ds-proxy/`,
+        },
       ],
     };
   },

@@ -197,7 +197,7 @@ export default function DSProxySessionRequestModal({
             }/api/labels/${address}`
           );
           const data = res.data;
-          if (data.length > 0) {
+          if (data.length > 0 && typeof data === "object") {
             setAddressLabels(data);
           }
         } catch {

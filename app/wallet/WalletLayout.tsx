@@ -41,11 +41,11 @@ export const BaseLayout = ({ children }: LayoutParams) => {
   return (
     <Layout>
       <HStack alignItems={"stretch"} h="full" w="full">
-        <Sidebar
-          heading="Wallet"
-          items={SidebarItems}
-          subdomain={subdomains.WALLET.base}
-        />
+        {/*<Sidebar*/}
+        {/*  heading="Wallet"*/}
+        {/*  items={SidebarItems}*/}
+        {/*  subdomain={subdomains.WALLET.base}*/}
+        {/*/>*/}
         <Box flexGrow={1} overflow="hidden" width={"100%"}>
           <Flex
             direction={{ base: "column", md: "row" }}
