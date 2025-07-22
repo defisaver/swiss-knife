@@ -35,3 +35,10 @@ yarn-error.log*
 next-env.d.ts
 
 certificates
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
