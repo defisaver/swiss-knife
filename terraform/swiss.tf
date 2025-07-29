@@ -9,8 +9,8 @@ module "swiss" {
   load_balancer_security_group_id  = data.terraform_remote_state.stage_services.outputs.alb_security_group_id
   service_name                     = "swiss"
   repository                       = "swiss"
-  subnet_ids                       = [data.terraform_remote_state.general_infra.outputs.stage_subnets.ids[0], data.terraform_remote_state.general_infra.outputs.stage_subnets.ids[3]]
-  vpc_id                           = data.terraform_remote_state.general_infra.outputs.automation_stage_vpc.id
+  subnet_ids                       = [data.terraform_remote_state.stage_networking.outputs.stage_subnets.ids[0], data.terraform_remote_state.stage_networking.outputs.stage_subnets.ids[3]]
+  vpc_id                           = data.terraform_remote_state.stage_networking.outputs.automation_stage_vpc.id
   datadog_enabled                  = false
   datadog_monitoring_secret_arn    = data.terraform_remote_state.observability.outputs.datadog_api_key_arn
   datadog_agent_version            = "7.42.2"
