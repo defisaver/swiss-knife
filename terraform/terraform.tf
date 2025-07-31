@@ -59,17 +59,6 @@ data "terraform_remote_state" "general_infra" {
   }
 }
 
-data "terraform_remote_state" "ecs_state" {
-  backend   = "s3"
-  workspace = "prod"
-
-  config = {
-    bucket = "defisaver-terraform-state-aws-ecs"
-    key    = "tfstate-s3-bucket"
-    region = "us-west-2"
-  }
-}
-
 data "terraform_remote_state" "observability" {
   backend = "s3"
 
