@@ -531,28 +531,25 @@ export const processContractBytecode = async ({
   contractCode: string;
   evmole: any;
 }) => {
-  // Get function selectors using evmole
-  console.log("Attempting evmole decode...");
-  const selectors = evmole.functionSelectors(contractCode);
-  console.log("Function selectors:", selectors);
+  console.log("Attempting EVMole...");
+  const info = evmole.contractInfo(contractCode, {selectors: true, arguments: true, stateMutability: true});
+  console.log("EVMole results:", info);
 
-  if (!selectors || !Array.isArray(selectors)) {
-    throw new Error("Invalid selectors format");
+  if (!info || !Array.isArray(info.functions)) {
+    throw new Error("Invalid EVMole functions format");
   }
 
   // Process and sort functions
   const processedAbi = await Promise.all(
-    selectors.map(async (selector) => {
-      const args = evmole.functionArguments(contractCode, selector);
-      const stateMutability = evmole.functionStateMutability(
-        contractCode,
-        selector,
-        0
-      );
+    info.functions.map(async (func: any) => {
+      const args = `(${func.arguments})`;
+      const stateMutability = func.stateMutability;
+
+      const hexSelector = startHexWith0x(func.selector);
 
       // Try to fetch function interface
       const functionInterface = await fetchFunctionInterface({
-        selector: startHexWith0x(selector),
+        selector: hexSelector,
       });
 
       let name: string | undefined;
@@ -562,10 +559,10 @@ export const processContractBytecode = async ({
 
       return {
         type: "function",
-        name: name || `selector: ${startHexWith0x(selector)}`,
-        inputs: args ? parseEVMoleInputTypes(args) : [],
+        name: name || `selector: ${hexSelector}`,
+        inputs: parseEVMoleInputTypes(args),
         stateMutability,
-        selector: startHexWith0x(selector),
+        selector: hexSelector,
       };
     })
   );
