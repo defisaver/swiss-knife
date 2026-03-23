@@ -456,7 +456,7 @@ const wallets: SupportedApp[] = [
     name: "Uniswap Wallet",
     logoUrl: getFaviconUrl("https://wallet.uniswap.org/"),
     siteUrl: "https://wallet.uniswap.org//",
-    supportedChainIds: [mainnet.id, base.id, bsc.id, optimism.id, unichain.id],
+    supportedChainIds: [mainnet.id, arbitrum.id, base.id, bsc.id, optimism.id, unichain.id],
     announcement: {
       epochTimestamp: 1749738240,
       tweet: "https://x.com/Uniswap/status/1933168423825035768",
@@ -837,6 +837,29 @@ const dapps: SupportedApp[] = [
     siteUrl: "https://zora.co/",
     supportedChainIds: [base.id],
   },
+  {
+    name: "Rainbow Wallet",
+    logoUrl: getFaviconUrl("https://rainbow.me"),
+    siteUrl: "https://rainbow.me/",
+    supportedChainIds: [
+      mainnet.id,
+      arbitrum.id,
+      base.id,
+      berachain.id,
+      bsc.id,
+      celo.id,
+      gnosis.id,
+      ink.id,
+      optimism.id,
+      polygon.id,
+      unichain.id,
+      katana.id,
+    ],
+    announcement: {
+      epochTimestamp: 1742428800,
+      tweet: "https://x.com/rainbowdotme",
+    },
+  },
 ];
 
 // Wall of Shame data
@@ -863,13 +886,6 @@ const shameWallets: SupportedApp[] = [
     siteUrl: "https://phantom.com/",
     supportedChainIds: [], // Empty since they don't support 7702
     twitterHandle: "phantom",
-  },
-  {
-    name: "Rainbow Wallet",
-    logoUrl: getFaviconUrl("https://rainbow.me"),
-    siteUrl: "https://rainbow.me/",
-    supportedChainIds: [], // Empty since they don't support 7702
-    twitterHandle: "rainbowdotme",
   },
   {
     name: "Frame Wallet",
