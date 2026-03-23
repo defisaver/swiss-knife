@@ -856,8 +856,8 @@ const dapps: SupportedApp[] = [
       katana.id,
     ],
     announcement: {
-      epochTimestamp: 1742428800,
-      tweet: "https://x.com/rainbowdotme",
+      epochTimestamp: 1772050680,
+      tweet: "https://x.com/rainbowdotme/status/2026753700216127820",
     },
   },
 ];
