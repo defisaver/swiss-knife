@@ -382,6 +382,18 @@ export const addressExplorers: ExplorersData = {
       [c.polygon.id]: "polygon",
     },
   },
+  "Citrea Explorer": {
+    urlLayout: `https://explorer.mainnet.citrea.xyz/address/${ADDRESS_KEY}`,
+    chainIdToLabel: {
+      [c.citrea.id]: "",
+    },
+  },
+  "Citrea Explorer (Testnet)": {
+    urlLayout: `https://explorer.testnet.citrea.xyz/address/${ADDRESS_KEY}`,
+    chainIdToLabel: {
+      [c.citreaTestnet.id]: "",
+    },
+  },
   "MegaETH Explorer": {
     urlLayout: `https://mega.etherscan.io/address/${ADDRESS_KEY}`,
     chainIdToLabel: {

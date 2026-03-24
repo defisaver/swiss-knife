@@ -148,6 +148,18 @@ export const txExplorers: ExplorersData = {
       [c.goerli.id]: "goerli",
     },
   },
+  "Citrea Explorer": {
+    urlLayout: `https://explorer.mainnet.citrea.xyz/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.citrea.id]: "",
+    },
+  },
+  "Citrea Explorer (Testnet)": {
+    urlLayout: `https://explorer.testnet.citrea.xyz/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.citreaTestnet.id]: "",
+    },
+  },
   "MegaETH Explorer": {
     urlLayout: `https://mega.etherscan.io/tx/${TX_KEY}`,
     chainIdToLabel: {

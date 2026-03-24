@@ -21,6 +21,7 @@ import {
   canto,
   celo,
   celoAlfajores,
+  citreaTestnet,
   confluxESpace,
   cronos,
   cronosTestnet,
@@ -142,6 +143,28 @@ export const monad = defineChain({
   },
 });
 
+export const citrea = defineChain({
+  id: 4114,
+  name: "Citrea",
+  nativeCurrency: {
+    name: "Citrea BTC",
+    symbol: "cBTC",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.mainnet.citrea.xyz"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Citrea Explorer",
+      url: "https://explorer.mainnet.citrea.xyz",
+    },
+  },
+  testnet: false,
+});
+
 export const megaeth = defineChain({
   id: 4326,
   name: "MegaETH",
@@ -197,6 +220,8 @@ export const c: { [name: string]: Chain } = {
   canto,
   celo,
   celoAlfajores,
+  citrea,
+  citreaTestnet,
   confluxESpace,
   cronos,
   cronosTestnet,
@@ -377,6 +402,7 @@ export const chainIdToImage = (() => {
     [bsc.id]: `${basePath}/bsc.svg`,
     [cronos.id]: `${basePath}/cronos.svg`,
     [goerli.id]: `${basePath}/ethereum.svg`,
+    [citrea.id]: `${basePath}/citrea.svg`,
     [ink.id]: `${basePath}/ink.svg`,
     [mainnet.id]: `${basePath}/ethereum.svg`,
     [megaeth.id]: `${basePath}/megaeth.svg`,

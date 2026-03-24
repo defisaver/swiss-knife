@@ -108,6 +108,29 @@ const zircuit = {
   },
 };
 
+const citrea = {
+  id: 4114,
+  name: "Citrea",
+  iconUrl: "/chainIcons/citrea.svg",
+  iconBackground: "#F0781B",
+  nativeCurrency: {
+    name: "Citrea BTC",
+    symbol: "cBTC",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.mainnet.citrea.xyz"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Citrea Explorer",
+      url: "https://explorer.mainnet.citrea.xyz",
+    },
+  },
+};
+
 const megaeth = {
   id: 4326,
   name: "MegaETH",
@@ -276,6 +299,13 @@ const chains: SupportedChain[] = [
     color: "yellow.200",
     abbreviation: "CELO",
     chainObj: celo,
+  },
+  {
+    id: citrea.id,
+    name: "Citrea",
+    color: "orange.400",
+    abbreviation: "CITREA",
+    chainObj: citrea,
   },
   {
     id: endurance.id,
