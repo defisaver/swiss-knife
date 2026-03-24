@@ -456,7 +456,14 @@ const wallets: SupportedApp[] = [
     name: "Uniswap Wallet",
     logoUrl: getFaviconUrl("https://wallet.uniswap.org/"),
     siteUrl: "https://wallet.uniswap.org//",
-    supportedChainIds: [mainnet.id, arbitrum.id, base.id, bsc.id, optimism.id, unichain.id],
+    supportedChainIds: [
+      mainnet.id,
+      arbitrum.id,
+      base.id,
+      bsc.id,
+      optimism.id,
+      unichain.id,
+    ],
     announcement: {
       epochTimestamp: 1749738240,
       tweet: "https://x.com/Uniswap/status/1933168423825035768",
@@ -501,6 +508,29 @@ const wallets: SupportedApp[] = [
       epochTimestamp: 1764979200,
       tweet:
         "https://cointelegraph.com/press-releases/rewardy-unveils-erc-7702-based-wallet-delivering-smart-ux-without-changing-wallet-addresses",
+    },
+  },
+  {
+    name: "Rainbow Wallet",
+    logoUrl: getFaviconUrl("https://rainbow.me"),
+    siteUrl: "https://rainbow.me/",
+    supportedChainIds: [
+      mainnet.id,
+      arbitrum.id,
+      base.id,
+      berachain.id,
+      bsc.id,
+      celo.id,
+      gnosis.id,
+      ink.id,
+      optimism.id,
+      polygon.id,
+      unichain.id,
+      katana.id,
+    ],
+    announcement: {
+      epochTimestamp: 1772050680,
+      tweet: "https://x.com/rainbowdotme/status/2026753700216127820",
     },
   },
 ];
@@ -836,29 +866,6 @@ const dapps: SupportedApp[] = [
     logoUrl: getFaviconUrl("https://zora.co/"),
     siteUrl: "https://zora.co/",
     supportedChainIds: [base.id],
-  },
-  {
-    name: "Rainbow Wallet",
-    logoUrl: getFaviconUrl("https://rainbow.me"),
-    siteUrl: "https://rainbow.me/",
-    supportedChainIds: [
-      mainnet.id,
-      arbitrum.id,
-      base.id,
-      berachain.id,
-      bsc.id,
-      celo.id,
-      gnosis.id,
-      ink.id,
-      optimism.id,
-      polygon.id,
-      unichain.id,
-      katana.id,
-    ],
-    announcement: {
-      epochTimestamp: 1772050680,
-      tweet: "https://x.com/rainbowdotme/status/2026753700216127820",
-    },
   },
 ];
 
