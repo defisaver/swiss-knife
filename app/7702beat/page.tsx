@@ -108,6 +108,29 @@ const zircuit = {
   },
 };
 
+const stablechain = {
+  id: 988,
+  name: "StableChain",
+  iconUrl: "/chainIcons/stable.svg",
+  iconBackground: "white",
+  nativeCurrency: {
+    name: "USDT0",
+    symbol: "USDT0",
+    decimals: 6,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.stable.xyz"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "StableScan",
+      url: "https://stablescan.xyz",
+    },
+  },
+};
+
 const megaeth = {
   id: 4326,
   name: "MegaETH",
@@ -335,6 +358,13 @@ const chains: SupportedChain[] = [
     color: "purple.500",
     abbreviation: "POL",
     chainObj: polygon,
+  },
+  {
+    id: stablechain.id,
+    name: "StableChain",
+    color: "green.300",
+    abbreviation: "STABLE",
+    chainObj: stablechain,
   },
   {
     id: unichain.id,
