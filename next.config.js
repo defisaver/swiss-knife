@@ -55,6 +55,7 @@ const nextConfig = {
 
     return config;
   },
+  turbopack: {},
   compiler: {
     styledComponents: true,
   },
