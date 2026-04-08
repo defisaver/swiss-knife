@@ -378,6 +378,7 @@ export const chainIdToImage = (() => {
     [cronos.id]: `${basePath}/cronos.svg`,
     [goerli.id]: `${basePath}/ethereum.svg`,
     [ink.id]: `${basePath}/ink.svg`,
+    [linea.id]: `${basePath}/linea.svg`,
     [mainnet.id]: `${basePath}/ethereum.svg`,
     [megaeth.id]: `${basePath}/megaeth.svg`,
     [monad.id]: `${basePath}/monad.svg`,

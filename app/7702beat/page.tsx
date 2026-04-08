@@ -54,6 +54,7 @@ import {
   celo,
   gnosis,
   ink,
+  linea,
   optimism,
   polygon,
   unichain,
@@ -329,6 +330,13 @@ const chains: SupportedChain[] = [
     chainObj: katana,
   },
   {
+    id: linea.id,
+    name: "Linea",
+    color: "blue.500",
+    abbreviation: "LINEA",
+    chainObj: linea,
+  },
+  {
     id: megaeth.id,
     name: "MegaETH",
     color: "white",
@@ -403,6 +411,7 @@ const wallets: SupportedApp[] = [
       gnosis.id,
       ink.id,
       katana.id, // https://explorer.ambire.com/?chainId=747474&txnId=0xc7f0957c270dd47261c69228e72a4c689f9e1293a0def2bc06b9e2c7c45c0524
+      linea.id,
       optimism.id,
       polygon.id,
       unichain.id,
@@ -423,6 +432,7 @@ const wallets: SupportedApp[] = [
       berachain.id,
       bsc.id,
       gnosis.id,
+      linea.id,
       optimism.id,
       // polygon.id,
       unichain.id,
