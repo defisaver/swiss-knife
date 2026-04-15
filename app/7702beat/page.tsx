@@ -575,6 +575,40 @@ const wallets: SupportedApp[] = [
   },
 ];
 
+const hardwareWallets: SupportedApp[] = [
+  {
+    name: "GridPlus",
+    logoUrl: getFaviconUrl("https://gridplus.io"),
+    siteUrl: "https://gridplus.io/",
+    supportedChainIds: [
+      mainnet.id,
+      arbitrum.id,
+      base.id,
+      berachain.id,
+      bsc.id,
+      celo.id,
+      endurance.id,
+      gnosis.id,
+      ink.id,
+      katana.id,
+      linea.id,
+      megaeth.id,
+      monad.id,
+      optimism.id,
+      polygon.id,
+      stablechain.id,
+      unichain.id,
+      worldchain.id,
+      zircuit.id,
+    ],
+    filterSupportsAllChains: true,
+    announcement: {
+      epochTimestamp: 1767884564,
+      tweet: "https://x.com/ambire/status/2009264088606769348",
+    },
+  },
+];
+
 const dapps: SupportedApp[] = [
   {
     name: "Ask Gina",
@@ -940,6 +974,23 @@ const shameWallets: SupportedApp[] = [
     siteUrl: "https://frame.sh/",
     supportedChainIds: [], // Empty since they don't support 7702
     twitterHandle: "0xframe",
+  },
+];
+
+const shameHardwareWallets: SupportedApp[] = [
+  {
+    name: "Ledger",
+    logoUrl: "/external/ledger-logo.png",
+    siteUrl: "https://www.ledger.com/",
+    supportedChainIds: [],
+    twitterHandle: "Ledger",
+  },
+  {
+    name: "Trezor",
+    logoUrl: getFaviconUrl("https://trezor.io/"),
+    siteUrl: "https://trezor.io/",
+    supportedChainIds: [],
+    twitterHandle: "Trezor",
   },
 ];
 
@@ -1955,17 +2006,131 @@ const SevenSevenZeroTwoBeat = () => {
                       </Table>
                     </Box>
                   )}
-                  <HStack
-                    mt={{ base: 0, md: 4 }}
-                    fontSize={{ base: "xs", md: "sm" }}
-                  >
-                    <Text color="red.400">*</Text>
-                    <Text color="whiteAlpha.600">
-                      {
-                        "Hardware wallets like Ledger and Trezor don't support 7702 at the moment"
-                      }
-                    </Text>
-                  </HStack>
+                </Box>
+
+                <Box
+                  mb={{ base: 6, md: 8 }}
+                  width="100%"
+                  maxW="100%"
+                  overflowX="hidden"
+                >
+                  <Box mb={3}>
+                    <Heading size={{ base: "md", md: "lg" }} color="white">
+                      Hardware Wallets
+                    </Heading>
+                  </Box>
+
+                  {isMobile ? (
+                    <VStack
+                      spacing={4}
+                      align="stretch"
+                      width="100%"
+                      maxW="100%"
+                    >
+                      {hardwareWallets.map((wallet, idx) => (
+                        <AppCard
+                          key={idx}
+                          app={wallet}
+                          filterChain={selectedChain}
+                        />
+                      ))}
+                    </VStack>
+                  ) : (
+                    <Box
+                      overflowX="auto"
+                      borderRadius="lg"
+                      borderWidth="1px"
+                      borderColor="whiteAlpha.200"
+                      maxW="100%"
+                      width="100%"
+                    >
+                      <Table variant="simple" size="sm">
+                        <Tbody>
+                          {hardwareWallets.map((wallet, index) => {
+                            const isWalletFiltered =
+                              selectedChain !== null &&
+                              !supportsChain(wallet, selectedChain);
+                            return (
+                              <Tr
+                                key={index}
+                                borderBottom={
+                                  index < hardwareWallets.length - 1
+                                    ? "1px solid"
+                                    : "none"
+                                }
+                                borderColor="whiteAlpha.200"
+                                opacity={isWalletFiltered ? 0.5 : 1}
+                                bg={
+                                  isWalletFiltered
+                                    ? "blackAlpha.400"
+                                    : "transparent"
+                                }
+                              >
+                                <Td
+                                  width={{ base: "150px", md: "200px" }}
+                                  py={4}
+                                  fontWeight="bold"
+                                  color="white"
+                                  verticalAlign="middle"
+                                >
+                                  <Flex align="center">
+                                    <AppLogo app={wallet} size="26px" />
+                                    {wallet.siteUrl ? (
+                                      <Link
+                                        href={wallet.siteUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        color="inherit"
+                                        textDecoration="none"
+                                        _hover={{ textDecoration: "underline" }}
+                                      >
+                                        <Text
+                                          fontSize={{ base: "sm", md: "md" }}
+                                        >
+                                          {wallet.name}
+                                        </Text>
+                                      </Link>
+                                    ) : (
+                                      <Text fontSize={{ base: "sm", md: "md" }}>
+                                        {wallet.name}
+                                      </Text>
+                                    )}
+                                  </Flex>
+                                </Td>
+                                <Td py={4}>
+                                  <AppChainDisplay
+                                    supportedAppChainIds={
+                                      wallet.supportedChainIds
+                                    }
+                                    globalChainsList={chains}
+                                  />
+                                </Td>
+                                <Td py={4} textAlign="right">
+                                  {wallet.announcement && (
+                                    <Link
+                                      href={wallet.announcement.tweet}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      fontSize="sm"
+                                      color="whiteAlpha.700"
+                                      _hover={{
+                                        color: "white",
+                                        textDecoration: "none",
+                                      }}
+                                    >
+                                      {formatAnnouncementDate(
+                                        wallet.announcement.epochTimestamp
+                                      )}
+                                    </Link>
+                                  )}
+                                </Td>
+                              </Tr>
+                            );
+                          })}
+                        </Tbody>
+                      </Table>
+                    </Box>
+                  )}
                 </Box>
 
                 <Box width="100%" maxW="100%" overflowX="hidden">
@@ -2140,6 +2305,21 @@ const SevenSevenZeroTwoBeat = () => {
                     </Heading>
                     <VStack spacing={4} align="stretch">
                       {shameWallets.map((wallet, idx) => (
+                        <ShameAppCard key={idx} app={wallet} />
+                      ))}
+                    </VStack>
+                  </Box>
+
+                  <Box width="100%" maxW="100%" overflowX="hidden">
+                    <Heading
+                      size={{ base: "md", md: "lg" }}
+                      mb={5}
+                      color="white"
+                    >
+                      Hardware Wallets
+                    </Heading>
+                    <VStack spacing={4} align="stretch">
+                      {shameHardwareWallets.map((wallet, idx) => (
                         <ShameAppCard key={idx} app={wallet} />
                       ))}
                     </VStack>
