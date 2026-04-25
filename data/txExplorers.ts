@@ -172,6 +172,13 @@ export const txExplorers: ExplorersData = {
       [c.megaeth.id]: "",
     },
   },
+  SeiScan: {
+    urlLayout: `https://${CHAINLABEL_KEY}seiscan.io/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.sei.id]: "",
+      [c.seiTestnet.id]: "testnet.",
+    },
+  },
   FTMscan: {
     urlLayout: `https://${CHAINLABEL_KEY}ftmscan.com/tx/${TX_KEY}`,
     chainIdToLabel: {
