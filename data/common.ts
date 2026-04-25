@@ -404,6 +404,7 @@ export const chainIdToImage = (() => {
     [goerli.id]: `${basePath}/ethereum.svg`,
     [citrea.id]: `${basePath}/citrea.svg`,
     [ink.id]: `${basePath}/ink.svg`,
+    [linea.id]: `${basePath}/linea.svg`,
     [mainnet.id]: `${basePath}/ethereum.svg`,
     [megaeth.id]: `${basePath}/megaeth.svg`,
     [monad.id]: `${basePath}/monad.svg`,
