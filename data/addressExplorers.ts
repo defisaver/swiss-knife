@@ -332,6 +332,18 @@ export const addressExplorers: ExplorersData = {
     },
     forContracts: true,
   },
+  EVMole: {
+    urlLayout: `https://evmole.xyz/#${ADDRESS_KEY}/${CHAINLABEL_KEY}`,
+    chainIdToLabel: {
+      [c.mainnet.id]: "eth",
+      [c.bsc.id]: "bnb",
+      [c.arbitrum.id]: "arb",
+      [c.base.id]: "base",
+      [c.optimism.id]: "op",
+      [c.polygon.id]: "matic",
+    },
+    forContracts: true,
+  },
   EVMStorage: {
     urlLayout: `https://evm.storage/eth/latest/${ADDRESS_KEY}`,
     chainIdToLabel: {
