@@ -148,6 +148,12 @@ export const txExplorers: ExplorersData = {
       [c.goerli.id]: "goerli",
     },
   },
+  "evm.now": {
+    urlLayout: `https://evm.now/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.mainnet.id]: "",
+    },
+  },
   "Citrea Explorer": {
     urlLayout: `https://explorer.mainnet.citrea.xyz/tx/${TX_KEY}`,
     chainIdToLabel: {

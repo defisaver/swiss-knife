@@ -344,6 +344,12 @@ export const addressExplorers: ExplorersData = {
     },
     forContracts: true,
   },
+  "evm.now": {
+    urlLayout: `https://evm.now/address/${ADDRESS_KEY}`,
+    chainIdToLabel: {
+      [c.mainnet.id]: "",
+    },
+  },
   EVMStorage: {
     urlLayout: `https://evm.storage/eth/latest/${ADDRESS_KEY}`,
     chainIdToLabel: {
