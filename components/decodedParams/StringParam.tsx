@@ -19,13 +19,13 @@ import {
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import axios from "axios";
 import { decodeBase64, isBigInt, isValidJSON, resolveIPFS } from "@/utils";
-import { JsonTextArea } from "../JsonTextArea";
 import TabsSelector from "../Tabs/TabsSelector";
 import { CopyToClipboard } from "../CopyToClipboard";
 import { ResizableImage } from "../ResizableImage";
 import { motion } from "framer-motion";
 import { isAddress } from "viem";
 import { renderParamTypes } from "../renderParams";
+import { Editor } from "@monaco-editor/react";
 
 interface Params {
   value: string | null;
@@ -68,7 +68,8 @@ export const StringParam = ({
     const _value = isBase64Encoded ? base64!.content : value;
     const parsedValue = JSON.parse(_value);
     displayValue = JSON.stringify(parsedValue, null, 4);
-    if (displayValue === "null" || !isValidJSON(_value)) {
+    // Don't show decoded JSON for null, empty arrays, or invalid JSON
+    if (displayValue === "null" || displayValue === "[]" || !isValidJSON(_value)) {
       throw new Error("Invalid JSON");
     }
     isJson = true;
@@ -236,16 +237,43 @@ export const StringParam = ({
                 <Spacer />
                 <CopyToClipboard textToCopy={value ?? ""} size="xs" />
               </HStack>
-              <JsonTextArea
+              <Editor
+                height="300px"
+                theme="vs-dark"
+                defaultLanguage="json"
                 value={displayValue}
-                setValue={() => {}}
-                placeholder="JSON"
-                ariaLabel="json"
-                h="100%"
-                canResize
-                autoMaxWidth
-                maxW={"50rem"}
-                language={isImage ? "xml" : "json"}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                }}
+              />
+            </Box>
+          );
+        } else if (isUrlImageOrJson?.isJson && urlContent) {
+          // Raw JSON from URL
+          const formattedUrlContent = JSON.stringify(urlContent, null, 4);
+          return (
+            <Box>
+              <HStack mb={1}>
+                <Spacer />
+                <CopyToClipboard
+                  textToCopy={formattedUrlContent ?? ""}
+                  size="xs"
+                />
+              </HStack>
+              <Editor
+                height="300px"
+                theme="vs-dark"
+                defaultLanguage="json"
+                value={formattedUrlContent}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                }}
               />
             </Box>
           );
@@ -273,10 +301,18 @@ export const StringParam = ({
   } else if (isImage) {
     richTabs = ["Image", "Raw SVG"];
   } else if (isUrl) {
-    richTabs = ["Fetched URL", "Raw URL"];
+    if (isUrlImageOrJson?.isJson) {
+      richTabs = ["Rich Output", "Raw JSON"];
+    } else {
+      richTabs = ["Fetched URL", "Raw URL"];
+    }
   }
 
   useEffect(() => {
+    // Reset URL-related state when value changes
+    setUrlContent(null);
+    setIsUrlImageOrJson(null);
+
     if (isUrl) {
       // Check if the URL returns an image or JSON
       axios
@@ -285,16 +321,17 @@ export const StringParam = ({
           let _urlContent = res.data;
           setUrlContent(_urlContent);
           try {
+            const stringified = JSON.stringify(_urlContent);
+            // Check for valid JSON object or array
             if (
               !(
-                JSON.stringify(_urlContent).startsWith("{") &&
-                JSON.stringify(_urlContent).endsWith("}")
+                (stringified.startsWith("{") && stringified.endsWith("}")) ||
+                (stringified.startsWith("[") && stringified.endsWith("]"))
               )
             ) {
               throw new Error("Invalid JSON");
             }
 
-            _urlContent = JSON.parse(JSON.stringify(_urlContent));
             setIsUrlImageOrJson({
               isJson: true,
             });
@@ -309,7 +346,7 @@ export const StringParam = ({
         })
         .catch(() => {});
     }
-  }, [isUrl]);
+  }, [isUrl, value]);
 
   useEffect(() => {
     if (!showSkeleton) {

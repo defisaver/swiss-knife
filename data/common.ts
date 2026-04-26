@@ -21,6 +21,7 @@ import {
   canto,
   celo,
   celoAlfajores,
+  citreaTestnet,
   confluxESpace,
   cronos,
   cronosTestnet,
@@ -63,6 +64,8 @@ import {
   ronin,
   scroll,
   scrollSepolia,
+  sei,
+  seiTestnet,
   sepolia,
   sonic,
   taikoJolnir,
@@ -78,6 +81,7 @@ import {
   Chain,
   unichain,
   ink,
+  worldchain,
 } from "viem/chains";
 import { _chains } from "./_chains";
 
@@ -85,6 +89,7 @@ import { defineChain } from "viem";
 
 // === New chains ===
 // to avoid Upgrading viem + wagmi, as it results in breaking changes atm.
+// source: https://github.com/wevm/viem/tree/main/src/chains/definitions
 export const plasma = defineChain({
   id: 9745,
   name: "Plasma",
@@ -104,6 +109,84 @@ export const plasma = defineChain({
       url: "https://plasmascan.to",
     },
   },
+});
+export const monad = defineChain({
+  id: 143,
+  name: "Monad",
+  blockTime: 400,
+  nativeCurrency: {
+    name: "Monad",
+    symbol: "MON",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.monad.xyz", "https://rpc1.monad.xyz"],
+      webSocket: ["wss://rpc.monad.xyz", "wss://rpc1.monad.xyz"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "MonadVision",
+      url: "https://monadvision.com",
+    },
+    monadscan: {
+      name: "Monadscan",
+      url: "https://monadscan.com",
+      apiUrl: "https://api.monadscan.com/api",
+    },
+  },
+  testnet: false,
+  contracts: {
+    multicall3: {
+      address: "0xcA11bde05977b3631167028862bE2a173976CA11",
+      blockCreated: 9248132,
+    },
+  },
+});
+
+export const citrea = defineChain({
+  id: 4114,
+  name: "Citrea",
+  nativeCurrency: {
+    name: "Citrea BTC",
+    symbol: "cBTC",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.mainnet.citrea.xyz"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Citrea Explorer",
+      url: "https://explorer.mainnet.citrea.xyz",
+    },
+  },
+  testnet: false,
+});
+
+export const megaeth = defineChain({
+  id: 4326,
+  name: "MegaETH",
+  nativeCurrency: {
+    name: "Ether",
+    symbol: "ETH",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://mainnet.megaeth.com/rpc"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "MegaETH Explorer",
+      url: "https://mega.etherscan.io",
+    },
+  },
+  testnet: false,
 });
 
 export const CHAINLABEL_KEY = "$SK_CHAINLABEL";
@@ -139,6 +222,8 @@ export const c: { [name: string]: Chain } = {
   canto,
   celo,
   celoAlfajores,
+  citrea,
+  citreaTestnet,
   confluxESpace,
   cronos,
   cronosTestnet,
@@ -164,7 +249,9 @@ export const c: { [name: string]: Chain } = {
   manta,
   mantaTestnet,
   mantle,
+  megaeth,
   metis,
+  monad,
   moonbaseAlpha,
   moonbeam,
   moonriver,
@@ -182,6 +269,8 @@ export const c: { [name: string]: Chain } = {
   ronin,
   scroll,
   scrollSepolia,
+  sei,
+  seiTestnet,
   sonic,
   taikoJolnir,
   taikoTestnetSepolia,
@@ -189,6 +278,7 @@ export const c: { [name: string]: Chain } = {
   wanchain,
   wemix,
   wemixTestnet,
+  worldchain,
   zkSync,
   zkSyncSepoliaTestnet,
   zora,
@@ -230,6 +320,7 @@ export const etherscanChains: { [name: string]: ExtendedChain } = {
   lineaTestnet,
   mantle,
   manta,
+  megaeth,
   moonbeam,
   moonriver,
   moonbaseAlpha,
@@ -244,6 +335,8 @@ export const etherscanChains: { [name: string]: ExtendedChain } = {
   polygonZkEvmTestnet,
   scroll,
   scrollSepolia,
+  sei,
+  seiTestnet,
   sepolia,
   taikoJolnir,
   taikoTestnetSepolia,
@@ -315,12 +408,20 @@ export const chainIdToImage = (() => {
     [bsc.id]: `${basePath}/bsc.svg`,
     [cronos.id]: `${basePath}/cronos.svg`,
     [goerli.id]: `${basePath}/ethereum.svg`,
+    [citrea.id]: `${basePath}/citrea.svg`,
     [ink.id]: `${basePath}/ink.svg`,
+    [linea.id]: `${basePath}/linea.svg`,
     [mainnet.id]: `${basePath}/ethereum.svg`,
+    [megaeth.id]: `${basePath}/megaeth.svg`,
+    [monad.id]: `${basePath}/monad.svg`,
     [optimism.id]: `${basePath}/optimism.svg`,
     [polygon.id]: `${basePath}/polygon.svg`,
+    [sei.id]: `${basePath}/sei.svg`,
+    [seiTestnet.id]: `${basePath}/sei.svg`,
     [sepolia.id]: `${basePath}/ethereum.svg`,
     [unichain.id]: `${basePath}/unichain.svg`,
+    [worldchain.id]: `${basePath}/worldchain.svg`,
+    [48900]: `${basePath}/zircuit.svg`, // Zircuit
     [zora.id]: `${basePath}/zora.svg`,
   };
 
@@ -328,9 +429,8 @@ export const chainIdToImage = (() => {
     const chainId = Number(_chainId);
 
     if (!res[chainId]) {
-      res[
-        chainId
-      ] = `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url=${chainIdToChain[chainId].blockExplorers?.default.url}`;
+      res[chainId] =
+        `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=128&url=${chainIdToChain[chainId].blockExplorers?.default.url}`;
     }
   });
 

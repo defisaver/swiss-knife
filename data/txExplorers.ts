@@ -86,6 +86,7 @@ export const txExplorers: ExplorersData = {
       [c.polygonZkEvm.id]: "zkevm",
       [c.zkSync.id]: "zksync",
       [c.zkSyncSepoliaTestnet.id]: "zksync-sepolia",
+      [c.megaeth.id]: "megaeth",
     },
   },
   Bloxy: {
@@ -147,6 +148,37 @@ export const txExplorers: ExplorersData = {
       [c.goerli.id]: "goerli",
     },
   },
+  "evm.now": {
+    urlLayout: `https://evm.now/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.mainnet.id]: "",
+    },
+  },
+  "Citrea Explorer": {
+    urlLayout: `https://explorer.mainnet.citrea.xyz/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.citrea.id]: "",
+    },
+  },
+  "Citrea Explorer (Testnet)": {
+    urlLayout: `https://explorer.testnet.citrea.xyz/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.citreaTestnet.id]: "",
+    },
+  },
+  "MegaETH Explorer": {
+    urlLayout: `https://mega.etherscan.io/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.megaeth.id]: "",
+    },
+  },
+  SeiScan: {
+    urlLayout: `https://${CHAINLABEL_KEY}seiscan.io/tx/${TX_KEY}`,
+    chainIdToLabel: {
+      [c.sei.id]: "",
+      [c.seiTestnet.id]: "testnet.",
+    },
+  },
   FTMscan: {
     urlLayout: `https://${CHAINLABEL_KEY}ftmscan.com/tx/${TX_KEY}`,
     chainIdToLabel: {
@@ -155,19 +187,6 @@ export const txExplorers: ExplorersData = {
     },
     faviconUrl: "https://ftmscan.com/assets/generic/html/favicon-light.ico",
     faviconWhite: true,
-  },
-  Openchain: {
-    urlLayout: `https://openchain.xyz/trace/${CHAINLABEL_KEY}/${TX_KEY}`,
-    chainIdToLabel: {
-      [c.mainnet.id]: "ethereum",
-      [c.arbitrum.id]: "arbitrum",
-      [c.avalanche.id]: "avalanche",
-      [c.bsc.id]: "binance",
-      [c.cronos.id]: "cronos",
-      [c.fantom.id]: "fantom",
-      [c.optimism.id]: "optimism",
-      [c.polygon.id]: "polygon",
-    },
   },
   OptimismScan: {
     urlLayout: `https://${CHAINLABEL_KEY}etherscan.io/tx/${TX_KEY}`,

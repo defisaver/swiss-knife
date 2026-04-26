@@ -8,7 +8,6 @@ import {
   PublicClient,
 } from "viem";
 import { mainnet } from "viem/chains";
-import { normalize } from "viem/ens";
 import {
   ADDRESS_KEY,
   CHAINLABEL_KEY,
@@ -23,6 +22,32 @@ import {
   EVMParameter,
 } from "@/types";
 import { formatEther, formatUnits } from "viem";
+
+// Re-export name resolution functions from the new unified lib
+export {
+  // Core resolution functions
+  resolveNameToAddress,
+  resolveAddressToName,
+  getNameAvatar,
+  // Legacy ENS functions (for backward compatibility)
+  getEnsAddress,
+  getEnsName,
+  getEnsAvatar,
+  // Basename-specific functions
+  getBasename,
+  getBasenameAvatar,
+  getBasenameTextRecord,
+  BasenameTextRecordKeys,
+  // Helper functions
+  isResolvableName,
+  isBasename,
+  // Constants
+  BASENAME_L2_RESOLVER_ADDRESS,
+  BASE_CHAIN_ID,
+  // Clients (for direct access if needed)
+  mainnetClient,
+  baseClient,
+} from "@/lib/nameResolution";
 
 export const getPath = (subdomain: string, isRelativePath: boolean = false) => {
   if (subdomain.length === 0) {
@@ -74,28 +99,11 @@ export const getMetadata = (_metadata: {
   return metadata;
 };
 
+// Keep publicClient export for backward compatibility (same as mainnetClient)
 export const publicClient = createPublicClient({
   chain: mainnet,
   transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC_URL),
 });
-
-export const getEnsAddress = async (name: string) => {
-  return await publicClient.getEnsAddress({
-    name: normalize(name),
-  });
-};
-
-export const getEnsName = async (address: string) => {
-  return await publicClient.getEnsName({
-    address: address as Hex,
-  });
-};
-
-export const getEnsAvatar = async (ensName: string) => {
-  return await publicClient.getEnsAvatar({
-    name: normalize(ensName),
-  });
-};
 
 export const generateUrl = (
   urlLayout: string,
@@ -523,28 +531,24 @@ export const processContractBytecode = async ({
   contractCode: string;
   evmole: any;
 }) => {
-  // Get function selectors using evmole
-  console.log("Attempting evmole decode...");
-  const selectors = evmole.functionSelectors(contractCode);
-  console.log("Function selectors:", selectors);
+  console.log("Attempting EVMole...");
+  const info = evmole.contractInfo(contractCode, {selectors: true, arguments: true, stateMutability: true});
+  console.log("EVMole results:", info);
 
-  if (!selectors || !Array.isArray(selectors)) {
-    throw new Error("Invalid selectors format");
+  if (!info || !Array.isArray(info.functions)) {
+    throw new Error("Invalid EVMole functions format");
   }
 
   // Process and sort functions
   const processedAbi = await Promise.all(
-    selectors.map(async (selector) => {
-      const args = evmole.functionArguments(contractCode, selector);
-      const stateMutability = evmole.functionStateMutability(
-        contractCode,
-        selector,
-        0
-      );
+    info.functions.map(async (func: any) => {
+      const stateMutability = func.stateMutability;
+
+      const hexSelector = startHexWith0x(func.selector);
 
       // Try to fetch function interface
       const functionInterface = await fetchFunctionInterface({
-        selector: startHexWith0x(selector),
+        selector: hexSelector,
       });
 
       let name: string | undefined;
@@ -552,12 +556,20 @@ export const processContractBytecode = async ({
         name = functionInterface.split("(")[0].trim();
       }
 
+      // evmole returns a bare comma-separated arg list (e.g. "address,uint256").
+      // Wrap in parens so parseEVMoleInputTypes treats it as a tuple, then
+      // unwrap the synthetic outer tuple to get a flat ABI inputs array.
+      const inputs = func.arguments
+        ? (parseEVMoleInputTypes(`(${func.arguments})`)[0] as any)
+            ?.components ?? []
+        : [];
+
       return {
         type: "function",
-        name: name || `selector: ${startHexWith0x(selector)}`,
-        inputs: args ? parseEVMoleInputTypes(args) : [],
+        name: name || `selector: ${hexSelector}`,
+        inputs,
         stateMutability,
-        selector: startHexWith0x(selector),
+        selector: hexSelector,
       };
     })
   );

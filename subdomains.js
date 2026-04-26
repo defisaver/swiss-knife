@@ -35,8 +35,8 @@ const subdomains = {
     base: "uniswap",
     paths: ["tick-to-price"],
   },
-  CONTRACT_ADDRESS: {
-    base: "contract-address",
+  DETERMINE_ADDRESS: {
+    base: "determine-address",
     paths: [],
   },
   CONTRACT_DIFF: {
@@ -70,6 +70,14 @@ const subdomains = {
   SOLIDITY: {
     base: "solidity",
     paths: ["compiler"],
+  },
+  USDC_PAY: {
+    base: "usdc-pay",
+    paths: [],
+  },
+  SIWE: {
+    base: "siwe",
+    paths: [],
   },
 };
 
