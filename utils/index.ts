@@ -542,7 +542,6 @@ export const processContractBytecode = async ({
   // Process and sort functions
   const processedAbi = await Promise.all(
     info.functions.map(async (func: any) => {
-      const args = `(${func.arguments})`;
       const stateMutability = func.stateMutability;
 
       const hexSelector = startHexWith0x(func.selector);
@@ -557,10 +556,18 @@ export const processContractBytecode = async ({
         name = functionInterface.split("(")[0].trim();
       }
 
+      // evmole returns a bare comma-separated arg list (e.g. "address,uint256").
+      // Wrap in parens so parseEVMoleInputTypes treats it as a tuple, then
+      // unwrap the synthetic outer tuple to get a flat ABI inputs array.
+      const inputs = func.arguments
+        ? (parseEVMoleInputTypes(`(${func.arguments})`)[0] as any)
+            ?.components ?? []
+        : [];
+
       return {
         type: "function",
         name: name || `selector: ${hexSelector}`,
-        inputs: parseEVMoleInputTypes(args),
+        inputs,
         stateMutability,
         selector: hexSelector,
       };
