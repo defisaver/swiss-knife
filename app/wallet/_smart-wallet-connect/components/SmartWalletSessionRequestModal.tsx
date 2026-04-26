@@ -33,7 +33,7 @@ import {
   Image,
 } from "@chakra-ui/react";
 import { Global } from "@emotion/react";
-import { useAccount, useSwitchChain } from "wagmi";
+import { useAccount, usePublicClient, useSwitchChain } from "wagmi";
 import {
   formatEther,
   Address,
@@ -41,9 +41,6 @@ import {
   http,
   erc20Abi,
   zeroAddress,
-  encodeFunctionData,
-  encodeAbiParameters,
-  parseAbiParameters,
   Hex,
 } from "viem";
 import {
@@ -57,9 +54,10 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { fetchContractAbi, generateTenderlyUrl } from "@/utils";
 import { BsArrowsAngleExpand, BsArrowsAngleContract } from "react-icons/bs";
-import { COINBASE_SMART_WALLET_ABI } from "../abi/CoinbaseSmartWallet";
+import type { SmartWalletConfig } from "../types";
 
-interface CoinbaseSmartWalletSessionRequestModalProps {
+interface SmartWalletSessionRequestModalProps {
+  config: SmartWalletConfig;
   isOpen: boolean;
   onClose: () => void;
   currentSessionRequest: SessionRequest | null;
@@ -71,8 +69,7 @@ interface CoinbaseSmartWalletSessionRequestModalProps {
   needsChainSwitch: boolean;
   targetChainId: number | null;
   onChainSwitch: () => void;
-  coinbaseSmartWalletAddress: string;
-  coinbaseSmartWalletChainId: number;
+  walletAddress: string;
   walletKit: WalletKitInstance | null;
   address: string | undefined;
   walletClient: any;
@@ -83,7 +80,8 @@ interface CoinbaseSmartWalletSessionRequestModalProps {
   toast: any;
 }
 
-export default function CoinbaseSmartWalletSessionRequestModal({
+export default function SmartWalletSessionRequestModal({
+  config,
   isOpen,
   onClose,
   currentSessionRequest,
@@ -95,8 +93,7 @@ export default function CoinbaseSmartWalletSessionRequestModal({
   needsChainSwitch,
   targetChainId,
   onChainSwitch,
-  coinbaseSmartWalletAddress,
-  coinbaseSmartWalletChainId,
+  walletAddress,
   walletKit,
   address,
   walletClient,
@@ -105,9 +102,10 @@ export default function CoinbaseSmartWalletSessionRequestModal({
   setNeedsChainSwitch,
   setTargetChainId,
   toast,
-}: CoinbaseSmartWalletSessionRequestModalProps) {
+}: SmartWalletSessionRequestModalProps) {
   const { address: connectedAddress } = useAccount();
   const { switchChainAsync } = useSwitchChain();
+  const publicClient = usePublicClient();
 
   const [addressLabels, setAddressLabels] = useState<string[]>([]);
   const [txDataTabIndex, setTxDataTabIndex] = useState(1); // Start with Raw tab (index 1)
@@ -120,28 +118,23 @@ export default function CoinbaseSmartWalletSessionRequestModal({
     }
   }, [decodedTxData]);
 
-  // Helper function to construct Coinbase Smart Wallet transaction
-  const constructCoinbaseSmartWalletTransaction = useCallback(
+  const wrapTransaction = useCallback(
     (txParams: any) => {
-      // Extract transaction parameters
       const to = txParams.to as Address;
       const value = txParams.value ? BigInt(txParams.value) : BigInt(0);
       const data = (txParams.data as Hex) || "0x";
+      const chainIdStr = currentSessionRequest?.params?.chainId?.split(":")?.[1];
+      const chainId = chainIdStr ? parseInt(chainIdStr) : 0;
 
-      // Encode the Coinbase Smart Wallet execute call
-      const coinbaseSmartWalletExecuteData = encodeFunctionData({
-        abi: COINBASE_SMART_WALLET_ABI,
-        functionName: "execute",
-        args: [to, value, data],
+      return config.wrapTransaction({
+        walletAddress: walletAddress as Address,
+        chainId,
+        to,
+        value,
+        data,
       });
-
-      return {
-        to: coinbaseSmartWalletAddress as Address,
-        value: 0n,
-        data: coinbaseSmartWalletExecuteData,
-      };
     },
-    [coinbaseSmartWalletAddress]
+    [config, walletAddress, currentSessionRequest]
   );
 
   const fetchAddressLabels = useCallback(
@@ -155,7 +148,7 @@ export default function CoinbaseSmartWalletSessionRequestModal({
         });
 
         // check if the address is a contract
-        const res = await client.getBytecode({
+        await client.getBytecode({
           address: address as Address,
         });
 
@@ -214,7 +207,6 @@ export default function CoinbaseSmartWalletSessionRequestModal({
     }
   }, [currentSessionRequest, fetchAddressLabels]);
 
-  // Coinbase Smart Wallet-specific approve function
   const onApprove = useCallback(async () => {
     if (!walletKit || !currentSessionRequest || !walletClient) return;
 
@@ -226,68 +218,108 @@ export default function CoinbaseSmartWalletSessionRequestModal({
 
       setPendingRequest(true);
 
-      // Handle different request methods
       if (request.method === "eth_sendTransaction") {
         const txParams = request.params[0];
-        const coinbaseSmartWalletTx =
-          constructCoinbaseSmartWalletTransaction(txParams);
+        const wrapped = wrapTransaction(txParams);
 
-        // Send transaction through DS Proxy using wagmi wallet client
         const hash = await walletClient.sendTransaction({
           account: address as Address,
-          ...coinbaseSmartWalletTx,
+          ...wrapped,
         });
 
         result = hash;
 
         toast({
-          title: "Transaction sent via Coinbase Smart Wallet ",
+          title: `Transaction sent via ${config.shortName}`,
           status: "info",
           duration: 5000,
           isClosable: true,
           position: "bottom-right",
         });
       } else if (request.method === "personal_sign") {
-        // Handle signing (no need to wrap for signatures)
+        if (!config.signPersonalMessage) {
+          throw new Error(
+            `${config.shortName} cannot sign messages: the contract does not implement ERC-1271.`
+          );
+        }
         const message = request.params[0];
         const signerAddress = request.params[1];
+        const requestedChainIdStr = params.chainId.split(":")[1];
+        const requestedChainId = parseInt(requestedChainIdStr);
 
-        if (signerAddress.toLowerCase() !== address?.toLowerCase()) {
-          throw new Error("Signer address mismatch");
+        // The dApp expects the smart wallet to be the signer (that's the
+        // account announced in the WC namespace). Reject if not.
+        if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+          throw new Error(
+            `Signer address mismatch: dApp requested ${signerAddress}, expected ${walletAddress}`
+          );
         }
+        if (!publicClient) throw new Error("No public client");
 
-        result = await walletClient.signMessage({
-          account: address as `0x${string}`,
-          message: typeof message === "string" ? message : message.raw,
+        result = await config.signPersonalMessage({
+          walletAddress: walletAddress as Address,
+          chainId: requestedChainId,
+          eoa: address as Address,
+          walletClient,
+          publicClient,
+          message,
         });
       } else if (
         request.method === "eth_signTypedData_v3" ||
         request.method === "eth_signTypedData_v4" ||
         request.method === "eth_signTypedData"
       ) {
-        // Handle typed data signing (no need to wrap for signatures)
-        const signerAddress = request.params[0];
-        const typedData = JSON.parse(request.params[1]);
-
-        if (signerAddress.toLowerCase() !== address?.toLowerCase()) {
-          throw new Error("Signer address mismatch");
+        if (!config.signTypedData) {
+          throw new Error(
+            `${config.shortName} cannot sign typed data: the contract does not implement ERC-1271.`
+          );
         }
+        const signerAddress = request.params[0];
+        const typedData =
+          typeof request.params[1] === "string"
+            ? JSON.parse(request.params[1])
+            : request.params[1];
+        const requestedChainIdStr = params.chainId.split(":")[1];
+        const requestedChainId = parseInt(requestedChainIdStr);
 
-        result = await walletClient.signTypedData({
-          account: address as `0x${string}`,
-          ...typedData,
+        if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+          throw new Error(
+            `Signer address mismatch: dApp requested ${signerAddress}, expected ${walletAddress}`
+          );
+        }
+        if (!publicClient) throw new Error("No public client");
+
+        result = await config.signTypedData({
+          walletAddress: walletAddress as Address,
+          chainId: requestedChainId,
+          eoa: address as Address,
+          walletClient,
+          publicClient,
+          typedData,
         });
       } else if (request.method === "wallet_switchEthereumChain") {
-        console.log(request.method); //Ktl
-        // Handle chain switching request
         const requestedChainId = parseInt(request.params[0].chainId);
-        // Switch chain using wagmi
-        setIsSwitchingChain(true);
-        await switchChainAsync({ chainId: requestedChainId });
-        setIsSwitchingChain(false);
 
-        // Return success
-        result = null;
+        if (config.walletSwitchChainBehavior === "switch") {
+          setIsSwitchingChain(true);
+          await switchChainAsync({ chainId: requestedChainId });
+          setIsSwitchingChain(false);
+          result = null;
+        } else {
+          // ack: smart wallet handles cross-chain execution itself
+          result = null;
+          if (config.ackChainSwitchToast) {
+            toast({
+              title: config.ackChainSwitchToast.title,
+              description:
+                config.ackChainSwitchToast.description(requestedChainId),
+              status: "info",
+              duration: 3000,
+              isClosable: true,
+              position: "bottom-right",
+            });
+          }
+        }
       } else if (request.method === "wallet_addEthereumChain") {
         // For adding a new chain, just show a toast
         const chainParams = request.params[0];
@@ -334,6 +366,7 @@ export default function CoinbaseSmartWalletSessionRequestModal({
     } catch (error) {
       console.error("Failed to handle session request:", error);
       setPendingRequest(false);
+      setIsSwitchingChain(false);
       toast({
         title: "Failed to handle request",
         description: (error as Error).message,
@@ -347,16 +380,20 @@ export default function CoinbaseSmartWalletSessionRequestModal({
     walletKit,
     currentSessionRequest,
     walletClient,
-    constructCoinbaseSmartWalletTransaction,
+    wrapTransaction,
     address,
+    walletAddress,
+    publicClient,
+    config,
+    switchChainAsync,
     setPendingRequest,
+    setIsSwitchingChain,
     setNeedsChainSwitch,
     setTargetChainId,
     toast,
     onClose,
   ]);
 
-  // DS Proxy-specific reject function
   const onReject = useCallback(async () => {
     if (!walletKit || !currentSessionRequest) return;
 
@@ -1183,16 +1220,14 @@ export default function CoinbaseSmartWalletSessionRequestModal({
                       currentSessionRequest.params.chainId.split(":")[1];
                     const chainId = parseInt(chainIdStr);
 
-                    // Use Coinbase Smart Wallet wrapped transaction for simulation
-                    const coinbaseSmartWalletTx =
-                      constructCoinbaseSmartWalletTransaction(txData);
+                    const wrapped = wrapTransaction(txData);
 
                     const url = generateTenderlyUrl(
                       {
                         from: connectedAddress || zeroAddress,
-                        to: coinbaseSmartWalletTx.to,
-                        value: coinbaseSmartWalletTx.value.toString(),
-                        data: coinbaseSmartWalletTx.data,
+                        to: wrapped.to,
+                        value: wrapped.value.toString(),
+                        data: wrapped.data,
                       },
                       chainId
                     );
