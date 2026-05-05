@@ -34,7 +34,8 @@ import {
   parseAsString,
   useQueryState,
 } from "next-usequerystate";
-import { createPublicClient, http, Hex, Chain, stringify } from "viem";
+import { Hex, Chain, stringify } from "viem";
+import { getPublicClient } from "@/lib/publicClient";
 import { DecodeRecursiveResult, SelectedOptionState , DecodeEventResult } from "@/types";
 import {
   c,
@@ -281,10 +282,7 @@ function CalldataDecoderPageContent({ headerText }: { headerText?: string }) {
         chain = c[chainKey as keyof typeof c];
       }
 
-      const publicClient = createPublicClient({
-        chain,
-        transport: http(),
-      });
+      const publicClient = getPublicClient(chain.id);
       const transaction = await publicClient.getTransaction({
         hash: txHash as Hex,
       });

@@ -27,9 +27,9 @@ import subdomains from "@/subdomains";
 import debounce from "lodash/debounce";
 import { motion, AnimatePresence } from "framer-motion";
 import { InputField } from "@/components/InputField";
-import { Address, createPublicClient, http, zeroAddress, erc20Abi } from "viem";
+import { Address, zeroAddress, erc20Abi } from "viem";
 import { fetchAddressLabels } from "@/utils/addressLabels";
-import { chainIdToChain } from "@/data/common";
+import { getPublicClient } from "@/lib/publicClient";
 
 interface InputFieldProps extends InputProps {
   chainId: number;
@@ -128,10 +128,7 @@ export const AddressInput = ({
       setErrorResolving(false);
       setAddressLabels([]);
       try {
-        const client = createPublicClient({
-          chain: chainIdToChain[chainId],
-          transport: http(),
-        });
+        const client = getPublicClient(chainId);
 
         // check if the address is a contract
         const res = await client.getBytecode({

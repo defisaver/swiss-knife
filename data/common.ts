@@ -348,6 +348,14 @@ export const etherscanChains: { [name: string]: ExtendedChain } = {
   // xaiTestnet,
 };
 
+// Map of chainId -> custom RPC URL sourced from env vars.
+// Add a new entry here when introducing a NEXT_PUBLIC_<CHAIN>_RPC_URL env var.
+// Only NEXT_PUBLIC_* vars work in client code; server-only vars belong in their own server modules.
+export const chainIdToCustomRpcUrl: Record<number, string | undefined> = {
+  [mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC_URL,
+  [base.id]: process.env.NEXT_PUBLIC_BASE_RPC_URL,
+};
+
 // TODO: these should be placed in provider and memoized
 export const chainIdToChain = (() => {
   let res: {
@@ -355,24 +363,31 @@ export const chainIdToChain = (() => {
   } = {};
 
   Object.values(c).map((chain) => {
-    res[chain.id] = chain;
-
-    // Override mainnet RPC URL with env variable if available
-    if (chain.id === mainnet.id && process.env.NEXT_PUBLIC_MAINNET_RPC_URL) {
+    const customRpcUrl = chainIdToCustomRpcUrl[chain.id];
+    if (customRpcUrl) {
       res[chain.id] = {
         ...chain,
         rpcUrls: {
           ...chain.rpcUrls,
           default: {
-            http: [process.env.NEXT_PUBLIC_MAINNET_RPC_URL],
+            http: [customRpcUrl],
           },
         },
       };
+    } else {
+      res[chain.id] = chain;
     }
   });
 
   return res;
 })();
+
+// Returns the RPC URL to use for a given chain — the env-configured override
+// when set, otherwise viem's default for that chain. Single source of truth
+// for every public client and wagmi transport in the app.
+export const getRpcUrlForChain = (chainId: number): string | undefined =>
+  chainIdToCustomRpcUrl[chainId] ||
+  chainIdToChain[chainId]?.rpcUrls.default?.http?.[0];
 
 // TODO: these should be placed in provider and memoized
 export const erc3770ShortNameToChain = (() => {

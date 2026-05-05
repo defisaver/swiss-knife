@@ -64,12 +64,14 @@ import { monad } from "@/data/common";
 import {
   Address,
   parseEther,
-  createPublicClient,
-  http,
   encodeFunctionData,
   PublicClient,
   Chain,
 } from "viem";
+import {
+  getPublicClient,
+  createPublicClientForRpcUrl,
+} from "@/lib/publicClient";
 import { fetchAddressLabels } from "@/utils/addressLabels";
 import { ConnectButton } from "@/components/ConnectButton";
 import { chainIdToImage } from "@/data/common";
@@ -238,10 +240,7 @@ async function checkChainIs7702Enabled({
 }): Promise<boolean> {
   let client = publicClient;
   if (!client && chain) {
-    client = createPublicClient({
-      chain,
-      transport: http(),
-    });
+    client = getPublicClient(chain.id);
   }
   if (!client) throw new Error("No publicClient or chain provided");
 
@@ -1699,9 +1698,7 @@ const SevenSevenZeroTwoBeat = () => {
     setRpcCheckResult(null);
 
     try {
-      const customClient = createPublicClient({
-        transport: http(rpcUrl),
-      });
+      const customClient = createPublicClientForRpcUrl(rpcUrl);
 
       // Fetch chain ID
       const chainId = await customClient.getChainId();

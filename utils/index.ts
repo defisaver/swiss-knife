@@ -1,7 +1,5 @@
 import { Metadata } from "next";
 import {
-  createPublicClient,
-  http,
   Hex,
   parseEther,
   parseUnits,
@@ -14,6 +12,7 @@ import {
   erc3770ShortNameToChain,
   TX_KEY,
 } from "@/data/common";
+import { getPublicClient } from "@/lib/publicClient";
 import {
   ContractResponse,
   ExplorerData,
@@ -100,10 +99,7 @@ export const getMetadata = (_metadata: {
 };
 
 // Keep publicClient export for backward compatibility (same as mainnetClient)
-export const publicClient = createPublicClient({
-  chain: mainnet,
-  transport: http(process.env.NEXT_PUBLIC_MAINNET_RPC_URL),
-});
+export const publicClient = getPublicClient(mainnet.id);
 
 export const generateUrl = (
   urlLayout: string,

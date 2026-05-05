@@ -37,12 +37,11 @@ import { useAccount, usePublicClient, useSwitchChain } from "wagmi";
 import {
   formatEther,
   Address,
-  createPublicClient,
-  http,
   erc20Abi,
   zeroAddress,
   Hex,
 } from "viem";
+import { getPublicClient } from "@/lib/publicClient";
 import {
   DecodedSignatureData,
   SessionRequest,
@@ -142,10 +141,7 @@ export default function SmartWalletSessionRequestModal({
       setAddressLabels([]);
 
       try {
-        const client = createPublicClient({
-          chain: chainIdToChain[chainId],
-          transport: http(),
-        });
+        const client = getPublicClient(chainId);
 
         // check if the address is a contract
         await client.getBytecode({

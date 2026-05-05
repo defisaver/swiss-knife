@@ -19,9 +19,9 @@ import { CopyToClipboard } from "@/components/CopyToClipboard";
 import subdomains from "@/subdomains";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { motion } from "framer-motion";
-import { Address, createPublicClient, http } from "viem";
-import { chainIdToChain } from "@/data/common";
+import { Address } from "viem";
 import { erc20Abi } from "viem";
+import { getPublicClient } from "@/lib/publicClient";
 
 interface Params {
   address: any;
@@ -53,10 +53,7 @@ export const AddressParam = ({
     try {
       if (!chainId) throw new Error("Chain ID not provided");
 
-      const client = createPublicClient({
-        chain: chainIdToChain[chainId],
-        transport: http(),
-      });
+      const client = getPublicClient(chainId);
 
       // check if the address is a contract
       const res = await client.getBytecode({
