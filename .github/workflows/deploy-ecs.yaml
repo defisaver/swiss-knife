@@ -40,6 +40,11 @@ jobs:
         with:
           mask-password: True
 
+      - name: Write .env from secret
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: printf '%s' "$ENV_FILE" > .env
+
       - name: Build Docker image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
