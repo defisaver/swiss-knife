@@ -21,9 +21,9 @@ const nextConfig = {
           source: "/icon.png",
           destination: "/icon.png",
         },
-        // set up subdomains
+        // set up subdomains (exclude api routes from subdomain rewrites)
         // ...Object.values(subdomains).map((subdomain) => ({
-        //   source: "/:path((?!_next|chainIcons|external|icon.png).*)", // Exclude chainIcons and external from subdomain rewrites
+        //   source: "/:path((?!_next|api|chainIcons|external|icon.png|worker).*)", // Exclude API routes, static assets and worker from subdomain rewrites
         //   has: [
         //     {
         //       type: "host",
@@ -43,7 +43,7 @@ const nextConfig = {
     return [
       {
         source: "/discord",
-        destination: process.env.DISCORD_URL,
+        destination: process.env.DISCORD_URL || "https://discord.com",
         permanent: true,
       },
     ];
@@ -60,11 +60,9 @@ const nextConfig = {
 
     return config;
   },
+  turbopack: {},
   compiler: {
     styledComponents: true,
-  },
-  experimental: {
-    windowHistorySupport: true,
   },
 };
 

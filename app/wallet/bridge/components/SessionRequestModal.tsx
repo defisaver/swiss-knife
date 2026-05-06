@@ -21,6 +21,7 @@ import {
   Skeleton,
   SkeletonText,
   Stack,
+  Switch,
   Tab,
   TabList,
   TabPanel,
@@ -37,16 +38,15 @@ import { useAccount } from "wagmi";
 import {
   formatEther,
   Address,
-  createPublicClient,
-  http,
   erc20Abi,
   zeroAddress,
 } from "viem";
 import { DecodedSignatureData, SessionRequest } from "../types";
 import { renderParams } from "@/components/renderParams";
 import { chainIdToChain } from "@/data/common";
+import { getPublicClient } from "@/lib/publicClient";
 import { useCallback, useEffect, useState } from "react";
-import axios from "axios";
+import { fetchAddressLabels } from "@/utils/addressLabels";
 import { fetchContractAbi, generateTenderlyUrl } from "@/utils";
 import { BsArrowsAngleExpand, BsArrowsAngleContract } from "react-icons/bs";
 
@@ -66,6 +66,9 @@ interface SessionRequestModalProps {
   onReject: () => void;
   onChainSwitch: () => void;
   portalId?: string;
+  forceInclusionEnabled?: boolean;
+  onForceInclusionToggle?: (enabled: boolean) => void;
+  isOPStackTransaction?: boolean;
 }
 
 export default function SessionRequestModal({
@@ -84,6 +87,9 @@ export default function SessionRequestModal({
   onReject,
   onChainSwitch,
   portalId,
+  forceInclusionEnabled = false,
+  onForceInclusionToggle,
+  isOPStackTransaction = false,
 }: SessionRequestModalProps) {
   const { address: connectedAddress } = useAccount();
 
@@ -98,15 +104,12 @@ export default function SessionRequestModal({
     }
   }, [decodedTxData]);
 
-  const fetchAddressLabels = useCallback(
+  const fetchAndSetAddressLabels = useCallback(
     async (address: string, chainId: number) => {
       setAddressLabels([]);
 
       try {
-        const client = createPublicClient({
-          chain: chainIdToChain[chainId],
-          transport: http(),
-        });
+        const client = getPublicClient(chainId);
 
         // check if the address is a contract
         const res = await client.getBytecode({
@@ -130,16 +133,9 @@ export default function SessionRequestModal({
         }
       } catch {
         try {
-          const res = await axios.get(
-            `${
-              process.env.NEXT_PUBLIC_DEVELOPMENT === "true"
-                ? ""
-                : "https://swiss-knife.xyz"
-            }/api/labels/${address}`
-          );
-          const data = res.data;
-          if (data.length > 0) {
-            setAddressLabels(data);
+          const labels = await fetchAddressLabels(address, chainId);
+          if (labels.length > 0) {
+            setAddressLabels(labels);
           }
         } catch {
           setAddressLabels([]);
@@ -160,13 +156,13 @@ export default function SessionRequestModal({
       const chainId = chainIdStr ? parseInt(chainIdStr) : null;
 
       if (chainId) {
-        fetchAddressLabels(
+        fetchAndSetAddressLabels(
           currentSessionRequest.params.request.params[0].to,
           chainId
         );
       }
     }
-  }, [currentSessionRequest, fetchAddressLabels]);
+  }, [currentSessionRequest, fetchAndSetAddressLabels]);
 
   return (
     <Modal
@@ -357,6 +353,62 @@ export default function SessionRequestModal({
                               ).toString()}
                             </Text>
                           </Flex>
+                        )}
+
+                        {/* Force Inclusion Toggle for OP Stack chains */}
+                        {isOPStackTransaction && onForceInclusionToggle && (
+                          <Box
+                            mt={3}
+                            p={3}
+                            bg="purple.900"
+                            borderRadius="md"
+                            borderWidth={1}
+                            borderColor="purple.500"
+                          >
+                            <Flex
+                              justifyContent="space-between"
+                              alignItems="center"
+                              flexDirection={{ base: "column", sm: "row" }}
+                              gap={2}
+                            >
+                              <Box flex={1}>
+                                <HStack mb={1}>
+                                  <Text
+                                    fontWeight="bold"
+                                    color="white"
+                                    fontSize={{ base: "sm", md: "md" }}
+                                  >
+                                    ⚡ Force Inclusion
+                                  </Text>
+                                  <Badge colorScheme="purple" fontSize="xs">
+                                    {chainIdToChain[
+                                      parseInt(
+                                        currentSessionRequest.params.chainId.split(
+                                          ":"
+                                        )[1]
+                                      )
+                                    ]?.name || "Unknown"}
+                                  </Badge>
+                                </HStack>
+                                <Text
+                                  color="whiteAlpha.700"
+                                  fontSize={{ base: "xs", md: "sm" }}
+                                >
+                                  Submit via L1 deposit to guarantee inclusion.
+                                  Takes 1-10 minutes.
+                                </Text>
+                              </Box>
+                              <Switch
+                                colorScheme="purple"
+                                size="lg"
+                                isChecked={forceInclusionEnabled}
+                                onChange={(e) =>
+                                  onForceInclusionToggle(e.target.checked)
+                                }
+                                isDisabled={pendingRequest}
+                              />
+                            </Flex>
+                          </Box>
                         )}
                       </Box>
 

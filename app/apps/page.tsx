@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Box,
@@ -713,7 +713,7 @@ function AppStoreContent({
             </Button>
           )}
           <Spacer />
-          <Box display={{ base: "none", md: "block" }} mr={4}>
+          <Box mr={4}>
             <FormControl display="flex" alignItems="center">
               <Tooltip
                 label="Verify the tx first via Swiss-Knife's calldata decoder, before sending them to your wallet"
@@ -729,15 +729,16 @@ function AppStoreContent({
                   _hover={{ color: "white" }}
                   onClick={(e) => e.stopPropagation()}
                   mr={1}
+                  display={{ base: "none", sm: "inline-flex" }}
                 />
               </Tooltip>
               <FormLabel
                 htmlFor="auto-approve"
                 mb="0"
                 color="white"
-                fontSize="sm"
+                fontSize={{ base: "xs", sm: "sm" }}
               >
-                Enable Swiss Knife decoder
+                Decoder
               </FormLabel>
               <Switch
                 id="auto-approve"
@@ -1387,16 +1388,18 @@ export default function WalletBridgeAppsPage() {
       signMessage={handleSignMessage}
       signTypedData={handleSignTypedData}
     >
-      <AppStoreContent
-        chainId={chainId}
-        address={address}
-        walletClient={walletClient}
-        switchChainAsync={switchChainAsync}
-        toast={toast}
-        iframeRequestHandlers={iframeRequestHandlers}
-        skipDecoder={skipDecoder}
-        setSkipDecoder={setSkipDecoder}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <AppStoreContent
+          chainId={chainId}
+          address={address}
+          walletClient={walletClient}
+          switchChainAsync={switchChainAsync}
+          toast={toast}
+          iframeRequestHandlers={iframeRequestHandlers}
+          skipDecoder={skipDecoder}
+          setSkipDecoder={setSkipDecoder}
+        />
+      </Suspense>
     </ImpersonatorIframeProvider>
   );
 }

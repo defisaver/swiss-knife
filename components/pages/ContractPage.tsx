@@ -28,7 +28,8 @@ import {
 import { CloseIcon } from "@chakra-ui/icons";
 import { parseAsInteger, useQueryState } from "next-usequerystate";
 import { JsonFragment } from "ethers";
-import { Address, PublicClient, createPublicClient, http } from "viem";
+import { Address, PublicClient } from "viem";
+import { getPublicClient } from "@/lib/publicClient";
 import { whatsabi } from "@shazow/whatsabi";
 import { ConnectButton } from "@/components/ConnectButton";
 import { ReadWriteFunction } from "@/components/fnParams/ReadWriteFunction";
@@ -40,7 +41,6 @@ import {
   slicedText,
   startHexWith0x,
 } from "@/utils";
-import { ABIFunction } from "@shazow/whatsabi/lib.types/abi";
 import { StorageSlot } from "../fnParams/StorageSlot";
 import { RawCalldata } from "../fnParams/RawCalldata";
 import subdomains from "@/subdomains";
@@ -527,10 +527,7 @@ export const ContractPage = ({
 
       try {
         // Create client for bytecode fetch
-        const client = createPublicClient({
-          chain: chainIdToChain[chainId],
-          transport: http(),
-        });
+        const client = getPublicClient(chainId);
 
         // Fetch contract bytecode
         const contractCode = await client.getCode({
@@ -641,12 +638,7 @@ export const ContractPage = ({
         `${getPath(subdomains.EXPLORER.base)}contract/${address}/${newChainId}`
       );
 
-      setClient(
-        createPublicClient({
-          chain: chainIdToChain[newChainId],
-          transport: http(),
-        })
-      );
+      setClient(getPublicClient(newChainId));
     }
   }, [selectedNetworkOption]);
 
