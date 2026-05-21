@@ -1,10 +1,11 @@
 import { getMetadata } from "@/utils";
 
 export async function generateMetadata({
-  params: { tx },
+  params,
 }: {
-  params: { tx: string };
+  params: Promise<{ tx: string }>;
 }) {
+  const { tx } = await params;
   return getMetadata({
     title: `Transaction ${tx} | Swiss-Knife.xyz`,
     description:

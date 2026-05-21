@@ -39,7 +39,7 @@ All your EVM tools in one place: https://swiss-knife.xyz/
 
 ## Setup
 
-1. This repository is a Nextjs 14 project. To run it locally, clone the repo and run the following commands:
+1. This repository is a Nextjs 15 project. To run it locally, clone the repo and run the following commands:
    ```bash
    pnpm i
    ```
