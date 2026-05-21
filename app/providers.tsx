@@ -4,6 +4,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import theme from "@/style/theme";
 import "@rainbow-me/rainbowkit/styles.css";
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, WagmiProvider, createConfig } from "wagmi";
 import {
@@ -90,16 +91,18 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
   globalOpenImpersonatorModal = openModal;
 
   return (
-    <ChakraProvider theme={theme}>
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider theme={darkTheme()} modalSize={"compact"}>
-            {children}
-            <ModalComponent />
-            <ImpersonatorFloatingButton />
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </ChakraProvider>
+    <NuqsAdapter>
+      <ChakraProvider theme={theme}>
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider theme={darkTheme()} modalSize={"compact"}>
+              {children}
+              <ModalComponent />
+              <ImpersonatorFloatingButton />
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </ChakraProvider>
+    </NuqsAdapter>
   );
 };

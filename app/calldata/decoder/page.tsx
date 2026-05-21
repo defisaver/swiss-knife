@@ -9,20 +9,21 @@ import { c, chainIdToChain } from "@/data/common";
 import { getPublicClient } from "@/lib/publicClient";
 
 interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export async function generateMetadata({
   searchParams,
 }: PageProps): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams;
   let title = "ETH Calldata Decoder | Swiss-Knife.xyz";
 
-  let calldata = searchParams.calldata as string | undefined;
-  let tx = searchParams.tx as string | undefined;
+  let calldata = resolvedSearchParams.calldata as string | undefined;
+  let tx = resolvedSearchParams.tx as string | undefined;
 
   // add function name to the title if possible
   if (tx) {
-    let chainId = searchParams.chainId as string | undefined;
+    let chainId = resolvedSearchParams.chainId as string | undefined;
     let chain: Chain;
 
     try {

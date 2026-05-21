@@ -5,13 +5,15 @@ import { ContractPage as ContractP } from "@/components/pages/ContractPage";
 import { generateMetadata as layoutGenerateMetadata } from "./layout";
 
 interface PageProps {
-  params: { address: string; chainId: number };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ address: string; chainId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export async function generateMetadata({
-  params: { address, chainId },
+  params,
 }: PageProps): Promise<Metadata> {
+  const { address, chainId: chainIdStr } = await params;
+  const chainId = parseInt(chainIdStr);
   let title = `Contract ${address} | Swiss-Knife.xyz`;
 
   // add contract name to the title if possible
@@ -28,7 +30,7 @@ export async function generateMetadata({
     title = `${contractName} - ${address} | Swiss-Knife.xyz`;
   }
 
-  const layoutMetadata = await layoutGenerateMetadata({ params: { address } });
+  const layoutMetadata = await layoutGenerateMetadata({ params: Promise.resolve({ address }) });
 
   return getMetadata({
     title,
@@ -37,19 +39,15 @@ export async function generateMetadata({
   });
 }
 
-const ContractPage = ({
+const ContractPage = async ({
   params,
-}: {
-  params: {
-    address: string;
-    chainId: string;
-  };
-}) => {
+}: PageProps) => {
+  const { address, chainId } = await params;
   return (
     <ContractP
       params={{
-        address: params.address,
-        chainId: parseInt(params.chainId),
+        address,
+        chainId: parseInt(chainId),
       }}
     />
   );

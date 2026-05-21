@@ -1,17 +1,19 @@
 "use client";
 
+import { use } from "react";
 import { Box } from "@chakra-ui/react";
 import { ExplorerGridBase } from "@/components/explorer/ExplorerGridBase";
 import { addressExplorers } from "@/data/addressExplorers";
 import { ExplorerType } from "@/types";
 
 const Address = ({
-  params: { address },
+  params,
 }: {
-  params: {
+  params: Promise<{
     address: string;
-  };
+  }>;
 }) => {
+  const { address } = use(params);
   return (
     <Box>
       <ExplorerGridBase
