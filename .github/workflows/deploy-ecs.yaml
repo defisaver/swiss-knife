@@ -16,7 +16,7 @@ jobs:
 
     env:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: "swiss/prod/swiss"
+      ECR_REPOSITORY: ${{secrets.ECR_REPOSITORY}}
       DOCKER_COMPOSE_FILE: "docker-compose.yaml"
       GH_TOKEN: ${{ github.token }}
 
