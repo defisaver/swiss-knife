@@ -9,6 +9,4 @@ locals {
     "Repository"  = "defisaver/infrastructure"
     "Environment" = "prod"
   }
-
-  stage_subnet_cidr = [for s in data.terraform_remote_state.stage_networking.outputs.stage_subnet_list : s.cidr_block]
 }
