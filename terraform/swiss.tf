@@ -17,6 +17,11 @@ module "swiss_prod" {
   datadog_team_tag                 = "front"
   load_balancer_container_port     = 3000
 
+  circuit_breaker = {
+    enabled  = true
+    rollback = true
+  }
+
   port_mappings = [
     {
       containerPort = 3000
