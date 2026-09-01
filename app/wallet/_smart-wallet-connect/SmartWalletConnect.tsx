@@ -18,6 +18,8 @@ import {
   Input,
   Alert,
   AlertIcon,
+  Badge,
+  HStack,
 } from "@chakra-ui/react";
 import { Global } from "@emotion/react";
 import frameSdk, { Context } from "@farcaster/frame-sdk";
@@ -48,6 +50,7 @@ import { filterActiveSessions } from "../bridge/utils";
 
 import SmartWalletSessionRequestModal from "./components/SmartWalletSessionRequestModal";
 import SmartWalletKitEventHandler from "./components/SmartWalletKitEventHandler";
+import { detectSmartWallet } from "./detect";
 import type { SmartWalletConfig } from "./types";
 
 interface ValidationState {
@@ -66,8 +69,13 @@ const initialValidation: ValidationState = {
 
 export default function SmartWalletConnect({
   config,
+  candidates,
 }: {
   config: SmartWalletConfig;
+  // When provided, the wallet type is identified from the pasted address
+  // instead of being fixed by the page. `config` then only supplies the
+  // pre-detection presentation.
+  candidates?: SmartWalletConfig[];
 }) {
   const toast = useToast();
   const { address, isConnected } = useAccount();
@@ -84,7 +92,18 @@ export default function SmartWalletConnect({
   const [validation, setValidation] =
     useState<ValidationState>(initialValidation);
 
-  const isChainSupported = config.isChainSupported(chainId);
+  // Wallet type resolved from the pasted address. Null until detection
+  // succeeds; everything downstream reads `activeConfig`, so the page behaves
+  // identically whether the type was detected or handed in by the page.
+  const [detectedConfig, setDetectedConfig] =
+    useState<SmartWalletConfig | null>(null);
+  const activeConfig = detectedConfig ?? config;
+  // Page chrome (heading, labels, prompts) always reads `config` - the stable
+  // unified copy - so the page never morphs after detection. The detected
+  // wallet drives behaviour and is surfaced additively via the "detected"
+  // badge, never by rewriting the surrounding text mid-use.
+
+  const isChainSupported = activeConfig.isChainSupported(chainId);
 
   // Frame SDK
   const [isFrameSDKLoaded, setIsFrameSDKLoaded] = useState(false);
@@ -140,6 +159,7 @@ export default function SmartWalletConnect({
     async (addr: string) => {
       if (!addr.trim() || !isAddress(addr) || !publicClient || !address) {
         setValidation(initialValidation);
+        setDetectedConfig(null);
         return;
       }
 
@@ -156,6 +176,7 @@ export default function SmartWalletConnect({
         });
 
         if (!bytecode || bytecode === "0x") {
+          setDetectedConfig(null);
           setValidation({
             isValidating: false,
             isContract: false,
@@ -165,8 +186,36 @@ export default function SmartWalletConnect({
           return;
         }
 
+        // Identify the wallet type before checking ownership: each family
+        // answers a different ownership question (DSProxy `owner()`, Summer.fi
+        // `guard.canCall()`, DSA `isAuth()`).
+        let resolved = config;
+        if (candidates?.length) {
+          const detected = await detectSmartWallet({
+            walletAddress: addr as Address,
+            publicClient,
+            chainId,
+            candidates,
+          });
+
+          if (!detected) {
+            setDetectedConfig(null);
+            setValidation({
+              isValidating: false,
+              isContract: true,
+              isOwner: null,
+              error:
+                "Unrecognised smart wallet - expected a DSProxy, Summer.fi or Instadapp DSA account on this chain.",
+            });
+            return;
+          }
+
+          resolved = detected;
+          setDetectedConfig(detected);
+        }
+
         try {
-          const { isOwner, error } = await config.checkOwner({
+          const { isOwner, error } = await resolved.checkOwner({
             walletAddress: addr as Address,
             eoa: address as Address,
             publicClient,
@@ -180,7 +229,7 @@ export default function SmartWalletConnect({
               error ??
               (isOwner
                 ? null
-                : `Connected wallet is not the owner of this ${config.shortName}`),
+                : `Connected wallet is not the owner of this ${resolved.shortName}`),
           });
         } catch (error) {
           console.error("Error checking owner:", error);
@@ -188,7 +237,7 @@ export default function SmartWalletConnect({
             isValidating: false,
             isContract: true,
             isOwner: false,
-            error: config.ownerCheckErrorMessage,
+            error: resolved.ownerCheckErrorMessage,
           });
         }
       } catch (error) {
@@ -201,8 +250,29 @@ export default function SmartWalletConnect({
         });
       }
     },
-    [publicClient, address, config]
+    [publicClient, address, chainId, config, candidates]
   );
+
+  // Adopt an address stored by the older single-wallet pages so anyone who had
+  // already configured one keeps it when this page became auto-detecting.
+  useEffect(() => {
+    if (walletAddress || !candidates?.length) return;
+
+    for (const candidate of candidates) {
+      try {
+        const stored = window.localStorage.getItem(candidate.localStorageKey);
+        if (!stored) continue;
+
+        const parsed = JSON.parse(stored);
+        if (typeof parsed === "string" && isAddress(parsed)) {
+          setWalletAddress(parsed);
+          return;
+        }
+      } catch {
+        // Unreadable or non-JSON entry - ignore and try the next one.
+      }
+    }
+  }, [candidates, walletAddress, setWalletAddress]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -458,7 +528,7 @@ export default function SmartWalletConnect({
     }
   }, [currentSessionRequest, chainId]);
 
-  const ConfigFooter = config.ConfigFooter;
+  const ConfigFooter = activeConfig.ConfigFooter;
 
   return (
     <Box w="full" mt="-2rem">
@@ -498,7 +568,7 @@ export default function SmartWalletConnect({
         />
 
         <SmartWalletKitEventHandler
-          config={config}
+          config={activeConfig}
           walletKit={walletKit}
           address={address}
           walletAddress={walletAddress}
@@ -625,7 +695,18 @@ export default function SmartWalletConnect({
                         validation.isOwner === true && (
                           <Alert status="success" borderRadius="md">
                             <AlertIcon />
-                            {config.shortName} address validated successfully
+                            <HStack spacing={2} flexWrap="wrap">
+                              <Text>
+                                {config.shortName} address validated
+                                successfully
+                              </Text>
+                              {detectedConfig && (
+                                <Badge colorScheme="green" variant="subtle">
+                                  {detectedConfig.emoji} detected:{" "}
+                                  {detectedConfig.shortName}
+                                </Badge>
+                              )}
+                            </HStack>
                           </Alert>
                         )}
 
@@ -634,7 +715,7 @@ export default function SmartWalletConnect({
                           <AlertIcon />
                           This chain is not supported. Please switch to a
                           supported chain:{" "}
-                          {config.getSupportedChainNames().join(", ")}
+                          {activeConfig.getSupportedChainNames().join(", ")}
                         </Alert>
                       )}
 
@@ -682,7 +763,7 @@ export default function SmartWalletConnect({
         />
 
         <SmartWalletSessionRequestModal
-          config={config}
+          config={activeConfig}
           isOpen={isSessionRequestOpen}
           onClose={handleSessionRequestClose}
           currentSessionRequest={currentSessionRequest}
