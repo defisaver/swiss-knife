@@ -4,7 +4,9 @@ import {
   Address,
   encodeAbiParameters,
   encodeFunctionData,
+  isAddressEqual,
   parseAbiParameters,
+  zeroAddress,
 } from "viem";
 import { chainIdToChain } from "@/data/common";
 import type { SmartWalletConfig } from "../_smart-wallet-connect/types";
@@ -20,6 +22,7 @@ const EXECUTOR_ADDRESSES: Record<number, Address> = {
 };
 
 export const dsProxyConfig: SmartWalletConfig = {
+  kind: "ds-proxy",
   emoji: "🛡️",
   shortName: "DSProxy",
   configHeading: "DSProxy Address",
@@ -27,6 +30,32 @@ export const dsProxyConfig: SmartWalletConfig = {
     "Connect your DSProxy contract to any dapp via WalletConnect. Transactions will be executed through your DSProxy.",
 
   localStorageKey: "dsProxyAddress",
+
+  // Probed last by the unified page. `owner()` alone is not identifying - every
+  // Ownable contract has one, so USDC would match - and Summer.fi accounts
+  // expose `owner()` too. Pairing it with `cache()`, the DSProxyCache pointer
+  // that only a DSProxy carries, makes this specific: both must answer.
+  detect: async ({ walletAddress, publicClient }) => {
+    const [owner, cache] = await Promise.all([
+      publicClient.readContract({
+        address: walletAddress,
+        abi: DS_PROXY_ABI,
+        functionName: "owner",
+      }),
+      publicClient.readContract({
+        address: walletAddress,
+        abi: DS_PROXY_ABI,
+        functionName: "cache",
+      }),
+    ]);
+
+    return (
+      !!owner &&
+      !isAddressEqual(owner, zeroAddress) &&
+      !!cache &&
+      !isAddressEqual(cache, zeroAddress)
+    );
+  },
 
   isChainSupported: (chainId) => !!EXECUTOR_ADDRESSES[chainId],
   getSupportedChainNames: () =>

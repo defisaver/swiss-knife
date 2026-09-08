@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
 import type { Address, Hex, PublicClient } from "viem";
 
+// Stable identifier for each supported smart-wallet contract family.
+export type SmartWalletKind =
+  | "ds-proxy"
+  | "summerfi"
+  | "instadapp-dsa"
+  | "coinbase-smart-wallet";
+
 export interface OwnerCheck {
   isOwner: boolean;
   error?: string;
@@ -14,6 +21,7 @@ export interface WrappedTransaction {
 
 export interface SmartWalletConfig {
   // Identity / display
+  kind: SmartWalletKind;
   emoji: string;
   // Used in UI text and toasts (e.g. "DSProxy", "Coinbase Smart Wallet").
   shortName: string;
@@ -24,6 +32,20 @@ export interface SmartWalletConfig {
 
   // Persistence
   localStorageKey: string;
+
+  // Auto-detection predicate for the unified page. Candidates are probed in
+  // registration order and the first match wins, so a shape that is a strict
+  // superset of another must be registered first. Summer.fi accounts also
+  // expose `owner()`, so DSProxy — identified by `owner()` plus its DSProxyCache
+  // pointer — is probed last, since that pair is the least distinctive marker.
+  //
+  // The address is already known to be a contract on `chainId` by the time this
+  // runs. A throw is treated as "not this type", not as an error.
+  detect?: (args: {
+    walletAddress: Address;
+    publicClient: PublicClient;
+    chainId: number;
+  }) => Promise<boolean>;
 
   // Chain support (returns true if a session request on this chain is supported).
   isChainSupported: (chainId: number) => boolean;
@@ -40,14 +62,19 @@ export interface SmartWalletConfig {
   // Error message shown when the owner check throws (e.g. wrong contract type).
   ownerCheckErrorMessage: string;
 
-  // Wrap a dApp-issued tx into a smart-wallet-relayed tx.
+  // Wrap a dApp-issued tx into a smart-wallet-relayed tx. May be async: some
+  // wallets consult on-chain state to build the relay (Summer.fi and DSA resolve
+  // DeFi Saver's entry point / registered actions before encoding the recipe).
   wrapTransaction: (args: {
     walletAddress: Address;
     chainId: number;
+    // The connected EOA driving the wallet. Instadapp DSA records it as the
+    // `origin` of a cast; other wallets ignore it.
+    eoa: Address;
     to: Address;
     value: bigint;
     data: Hex;
-  }) => WrappedTransaction;
+  }) => WrappedTransaction | Promise<WrappedTransaction>;
 
   // Optional ERC-1271 signature wrappers. When set, the modal will produce a
   // signature that the dApp can verify against the smart wallet via

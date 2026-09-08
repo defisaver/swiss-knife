@@ -128,12 +128,13 @@ export default function SmartWalletSessionRequestModal({
       return config.wrapTransaction({
         walletAddress: walletAddress as Address,
         chainId,
+        eoa: address as Address,
         to,
         value,
         data,
       });
     },
-    [config, walletAddress, currentSessionRequest]
+    [config, walletAddress, address, currentSessionRequest]
   );
 
   const fetchAndSetAddressLabels = useCallback(
@@ -209,7 +210,7 @@ export default function SmartWalletSessionRequestModal({
 
       if (request.method === "eth_sendTransaction") {
         const txParams = request.params[0];
-        const wrapped = wrapTransaction(txParams);
+        const wrapped = await wrapTransaction(txParams);
 
         const hash = await walletClient.sendTransaction({
           account: address as Address,
@@ -1202,14 +1203,29 @@ export default function SmartWalletSessionRequestModal({
                 <Button
                   colorScheme="whiteAlpha"
                   size={{ base: "sm", md: "md" }}
-                  onClick={() => {
+                  onClick={async () => {
                     const txData =
                       currentSessionRequest.params.request.params[0];
                     const chainIdStr =
                       currentSessionRequest.params.chainId.split(":")[1];
                     const chainId = parseInt(chainIdStr);
 
-                    const wrapped = wrapTransaction(txData);
+                    let wrapped;
+                    try {
+                      // Wallets with no arbitrary-call encoding (Instadapp DSA)
+                      // throw here - there is nothing to simulate.
+                      wrapped = await wrapTransaction(txData);
+                    } catch (error) {
+                      toast({
+                        title: `Cannot simulate via ${config.shortName}`,
+                        description: (error as Error).message,
+                        status: "error",
+                        duration: 6000,
+                        isClosable: true,
+                        position: "bottom-right",
+                      });
+                      return;
+                    }
 
                     const url = generateTenderlyUrl(
                       {

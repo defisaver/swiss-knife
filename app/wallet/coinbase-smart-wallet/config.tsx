@@ -108,6 +108,7 @@ async function wrapErc1271Signature({
 }
 
 export const coinbaseSmartWalletConfig: SmartWalletConfig = {
+  kind: "coinbase-smart-wallet",
   emoji: "🔵",
   shortName: "Coinbase Smart Wallet",
   configHeading: "Coinbase Smart Wallet Address",
